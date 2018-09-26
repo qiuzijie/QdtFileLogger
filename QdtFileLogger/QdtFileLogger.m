@@ -13,18 +13,19 @@
 #import <unistd.h>
 #import <UIKit/UIKit.h>
 
-static NSTimeInterval const k24HourTimeInterval = 1;
+static NSTimeInterval const k24HourTimeInterval = 24 * 60 * 60;
 static NSString const *kLogFilePrefix = @"qdtLogFile";
 static NSString const *kLogFileSuffix = @".log";
 
 @interface QdtFileLogger ()
-@property (nonatomic, copy  ) NSString *logFileName;
-@property (nonatomic, copy  ) NSString *logFileExtension;
-@property (nonatomic, assign) NSTimeInterval logFileRollingFrequency;
-@property (nonatomic, strong) NSFileHandle *fileHandle;
+@property (nonatomic, copy  , readwrite) NSString *currentFilePath;
+@property (nonatomic, copy  ) NSString          *logFileName;
+@property (nonatomic, copy  ) NSString          *logFileExtension;
+@property (nonatomic, assign) NSTimeInterval    logFileRollingFrequency;
+@property (nonatomic, strong) NSFileHandle      *fileHandle;
 @property (nonatomic, strong) QdtFileLoggerInfo *currentFileLoggerInfo;
-@property (nonatomic, strong) NSString *logsDirectory;
-@property (nonatomic, strong) NSDateFormatter *dateFormater;
+@property (nonatomic, strong) NSString          *logsDirectory;
+@property (nonatomic, strong) NSDateFormatter   *dateFormater;
 @property (nonatomic) dispatch_source_t rollingTimer;
 @property (nonatomic) dispatch_source_t currentLogFileVnode;
 @property (nonatomic) dispatch_queue_t  logQueue;
@@ -258,6 +259,9 @@ static NSString const *kLogFileSuffix = @".log";
 
 #pragma mark- getter / setter
 
+- (NSString *)currentFilePath{
+    return self.logsDirectory;
+}
 
 - (dispatch_queue_t)logQueue{
     if (_logQueue == nil) {
@@ -282,14 +286,12 @@ static NSString const *kLogFileSuffix = @".log";
 
 - (NSString *)logsDirectory {
     if (self.filePathCustomComponent.length == 0) {
-        
         return nil;
     }
     
     NSString *path = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];
     path = [path stringByAppendingPathComponent:@"QdtCaches"];
-    path = [path stringByAppendingPathComponent:self.filePathCustomComponent];
-    _logsDirectory = [path stringByAppendingPathComponent:@"QdtLog"];
+    _logsDirectory = [path stringByAppendingPathComponent:self.filePathCustomComponent];
     
     if (![[NSFileManager defaultManager] fileExistsAtPath:_logsDirectory]) {
         if (![[NSFileManager defaultManager] createDirectoryAtPath:_logsDirectory
@@ -311,7 +313,6 @@ static NSString const *kLogFileSuffix = @".log";
             QdtFileLoggerInfo *theNewlyFileInfo = [[QdtFileLoggerInfo alloc] initWithFilePath:[sorteNSLogPaths firstObject]];
             if (theNewlyFileInfo.age <= self.logFileRollingFrequency) {
                 _currentFileLoggerInfo = theNewlyFileInfo;
-                NSLog(@"%@", [sorteNSLogPaths firstObject]);
             }
         }
         

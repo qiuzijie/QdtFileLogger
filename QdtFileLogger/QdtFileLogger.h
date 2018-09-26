@@ -26,7 +26,9 @@ typedef NS_ENUM(NSInteger, QdtFileLogType){
 //默认为7天
 @property (nonatomic, assign) NSInteger fileSaveDays;
 //默认为设备的UUID
-@property (nonatomic, copy  ) NSString  *filePathCustomComponent;
+@property (nonatomic, copy  ) NSString *filePathCustomComponent;
+//当前文件目录
+@property (nonatomic, copy  , readonly) NSString *currentFilePath;
 
 + (instancetype)defalut;
 
